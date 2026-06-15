@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Microsoft Copilot Cowork — Cost Estimator</title>
+  <meta name="description" content="Live, interactive estimator for modelling Copilot Credit usage and Cowork budget based on your organization's expected usage." />
+  <link rel="stylesheet" href="styles.css" />
+  <link rel="preconnect" href="https://cdnjs.cloudflare.com" />
+</head>
+<body>
+  <div class="app">
+    <!-- ===================== HEADER ===================== -->
+    <header class="masthead">
+      <div class="masthead-inner">
+        <div class="brand">
+          <div class="brand-mark" aria-hidden="true">
+            <span></span><span></span><span></span><span></span>
+          </div>
+          <div class="brand-text">
+            <span class="brand-kicker">Microsoft Copilot Cowork</span>
+            <h1>Usage-Based Cost Estimator</h1>
+          </div>
+        </div>
+        <div class="masthead-actions no-print">
+          <button id="btn-print" class="btn btn-ghost" type="button" title="Print this estimate">
+            <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path fill="currentColor" d="M6 9V3h12v6h2a2 2 0 0 1 2 2v6a2 2 0 0 1-2 2h-2v3H6v-3H4a2 2 0 0 1-2-2v-6a2 2 0 0 1 2-2h2Zm2-4v4h8V5H8Zm0 12v3h8v-5H8v2Zm10-5a1 1 0 1 0 0-2 1 1 0 0 0 0 2Z"/></svg>
+            Print
+          </button>
+          <button id="btn-pdf" class="btn btn-primary" type="button" title="Export this estimate to PDF">
+            <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path fill="currentColor" d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8l-6-6Zm-1 7V3.5L18.5 9H13ZM8 13h2.5a1.75 1.75 0 0 1 0 3.5H9V18H8v-5Zm1 2.5h1.5a.75.75 0 0 0 0-1.5H9v1.5Zm5-2.5h2v1h-2v1h1.7v1H14v1h-1v-5Zm-1.5 0h1.2v5H12.5v-5Z"/></svg>
+            Export PDF
+          </button>
+        </div>
+      </div>
+    </header>
+
+    <p class="intro">
+      Use this tool to explore how your organization might use <strong>Copilot Credits</strong> with Cowork.
+      Enter your expected usage to model scenarios and get a directional view of potential cost.
+      Estimates are <em>illustrative</em>; validate against your own needs.
+      <span class="credit-note">1 Copilot Credit = <strong>$0.01</strong> (PAYG list pricing).</span>
+    </p>
+
+    <!-- ===================== CONTEXT STRIP (slide 8) ===================== -->
+    <section class="inputs-strip no-print" aria-label="What drives Copilot Credit usage">
+      <h2 class="strip-title">Copilot Credit usage comes from four inputs</h2>
+      <div class="inputs-grid">
+        <div class="input-card">
+          <div class="ic-icon ic-models">◆</div>
+          <h3>Models</h3>
+          <p>The AI model chosen for each task — balancing quality, speed and cost.</p>
+        </div>
+        <div class="input-card">
+          <div class="ic-icon ic-context">◈</div>
+          <h3>Context</h3>
+          <p>Understanding drawn from emails, files, meetings and past interactions.</p>
+        </div>
+        <div class="input-card">
+          <div class="ic-icon ic-tools">⚙</div>
+          <h3>Tools</h3>
+          <p>Actions taken to get work done — sending email, scheduling, updating docs.</p>
+        </div>
+        <div class="input-card">
+          <div class="ic-icon ic-runtime">⟳</div>
+          <h3>Runtime</h3>
+          <p>Managed cloud orchestration that runs agents across long-running tasks.</p>
+        </div>
+      </div>
+    </section>
+
+    <div class="layout">
+      <!-- ===================== LEFT: FORM ===================== -->
+      <main class="form-col">
+
+        <!-- STEP 1 -->
+        <section class="step" id="step1">
+          <div class="step-head">
+            <span class="step-badge">Step 1</span>
+            <div>
+              <h2>Who will use Cowork?</h2>
+              <p class="step-sub">Enter the number of users in each role.</p>
+            </div>
+          </div>
+          <div class="table-wrap">
+            <table class="grid-table">
+              <thead>
+                <tr><th class="th-label">Role</th><th class="th-num">Number of users</th></tr>
+              </thead>
+              <tbody id="users-body"><!-- rows injected --></tbody>
+              <tfoot>
+                <tr><td class="th-label">Total users</td><td class="th-num"><output id="total-users">0</output></td></tr>
+              </tfoot>
+            </table>
+          </div>
+        </section>
+
+        <!-- STEP 2 -->
+        <section class="step" id="step2">
+          <div class="step-head">
+            <span class="step-badge">Step 2</span>
+            <div>
+              <h2>How many prompts per user each month?</h2>
+              <p class="step-sub">Light, medium and heavy prompts per user per month. Defaults reflect Microsoft Frontier customer usage (5/27/2026) — adjust to suit your organization.</p>
+            </div>
+          </div>
+
+          <div class="jobtype-legend">
+            <div class="legend-item"><span class="dot dot-light"></span><strong>Light</strong> — narrow context, lightweight model, 0–1 tool calls, minimal runtime; 0–1 deliverables.</div>
+            <div class="legend-item"><span class="dot dot-medium"></span><strong>Medium</strong> — richer context, capable model, several tool calls, moderate runtime; 2+ outputs.</div>
+            <div class="legend-item"><span class="dot dot-heavy"></span><strong>Heavy</strong> — broad context aggregation, high-quality model, many tool calls, sustained runtime; many outputs.</div>
+          </div>
+
+          <div class="table-wrap">
+            <table class="grid-table prompts-table">
+              <thead>
+                <tr>
+                  <th class="th-label">Role</th>
+                  <th class="th-num"><span class="dot dot-light"></span>Light</th>
+                  <th class="th-num"><span class="dot dot-medium"></span>Medium</th>
+                  <th class="th-num"><span class="dot dot-heavy"></span>Heavy</th>
+                  <th class="th-num th-result">Credits / user / mo</th>
+                </tr>
+              </thead>
+              <tbody id="prompts-body"><!-- rows injected --></tbody>
+            </table>
+          </div>
+        </section>
+
+        <!-- STEP 3 -->
+        <section class="step" id="step3">
+          <div class="step-head">
+            <span class="step-badge">Step 3</span>
+            <div>
+              <h2>Credits consumed per prompt</h2>
+              <p class="step-sub">Defaults reflect Microsoft Frontier customer usage (5/27/2026). Job-type ranges from early testing: Light 70–200, Medium 500–700, Heavy &gt;1,500 credits.</p>
+            </div>
+          </div>
+          <div class="table-wrap credits-wrap">
+            <table class="grid-table">
+              <thead>
+                <tr><th class="th-label">Prompt type</th><th class="th-num">Copilot Credits used per prompt</th><th class="th-range">Typical range</th></tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td class="th-label"><span class="dot dot-light"></span>Light</td>
+                  <td class="th-num"><input type="number" id="cpp-light" class="num-input" min="0" step="1" value="125" /></td>
+                  <td class="th-range">70 – 200</td>
+                </tr>
+                <tr>
+                  <td class="th-label"><span class="dot dot-medium"></span>Medium</td>
+                  <td class="th-num"><input type="number" id="cpp-medium" class="num-input" min="0" step="1" value="500" /></td>
+                  <td class="th-range">500 – 700</td>
+                </tr>
+                <tr>
+                  <td class="th-label"><span class="dot dot-heavy"></span>Heavy</td>
+                  <td class="th-num"><input type="number" id="cpp-heavy" class="num-input" min="0" step="1" value="2500" /></td>
+                  <td class="th-range">&gt; 1,500</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <button id="btn-reset" class="btn btn-link no-print" type="button">↺ Reset all to defaults</button>
+        </section>
+      </main>
+
+      <!-- ===================== RIGHT: SUMMARY ===================== -->
+      <aside class="summary-col">
+        <section class="step summary-card" id="step4">
+          <div class="step-head">
+            <span class="step-badge step-badge-accent">Step 4</span>
+            <div><h2>Your estimate</h2><p class="step-sub">Updates live as you type.</p></div>
+          </div>
+
+          <div class="stat stat-primary">
+            <span class="stat-label">Est. monthly Cowork budget <small>(list pricing)</small></span>
+            <span class="stat-value" id="out-budget">$0</span>
+          </div>
+
+          <div class="stat-row">
+            <div class="stat">
+              <span class="stat-label">Est. monthly Copilot Credits</span>
+              <span class="stat-value stat-sm" id="out-credits">0</span>
+            </div>
+            <div class="stat">
+              <span class="stat-label">Avg price / user / month</span>
+              <span class="stat-value stat-sm" id="out-avg">$0</span>
+            </div>
+          </div>
+
+          <div class="stat-row">
+            <div class="stat">
+              <span class="stat-label">Total users</span>
+              <span class="stat-value stat-sm" id="out-users">0</span>
+            </div>
+            <div class="stat">
+              <span class="stat-label">Est. annual budget</span>
+              <span class="stat-value stat-sm" id="out-annual">$0</span>
+            </div>
+          </div>
+
+          <div class="breakdown">
+            <h3>Monthly credits by role</h3>
+            <ul id="breakdown-list"></ul>
+          </div>
+
+          <p class="formula-note">
+            Budget = Credits ÷ 100 &nbsp;·&nbsp; 1 Credit = $0.01 PAYG.
+          </p>
+        </section>
+      </aside>
+    </div>
+
+    <!-- ===================== PRICING EXAMPLES (slide 11/12) ===================== -->
+    <section class="examples no-print">
+      <h2 class="strip-title">Job types &amp; pricing examples</h2>
+      <p class="examples-sub">Early testing, Jun 2–12 2026. Prompts abbreviated for illustration.</p>
+      <div class="examples-grid">
+        <article class="ex-card ex-light">
+          <header><span class="dot dot-light"></span><h3>Light</h3><span class="ex-price">$0.50 – $1.50</span></header>
+          <p class="ex-meta">Few sources · light reasoning · 1 or fewer outputs · ~70–200 credits</p>
+          <p class="ex-prompt">“Create a weekly status update for my team every Monday — top priorities and key exec meetings from my calendar. Save as a draft.”</p>
+        </article>
+        <article class="ex-card ex-medium">
+          <header><span class="dot dot-medium"></span><h3>Medium</h3><span class="ex-price">$4 – $7</span></header>
+          <p class="ex-meta">Many sources · structured reasoning · 2+ outputs · ~500–700 credits</p>
+          <p class="ex-prompt">“Prepare for my customer meeting — pull emails, calendar, and recent files into a briefing doc and a client-ready presentation.”</p>
+        </article>
+        <article class="ex-card ex-heavy">
+          <header><span class="dot dot-heavy"></span><h3>Heavy</h3><span class="ex-price">$18 – $24</span></header>
+          <p class="ex-meta">Broad aggregation · deep reasoning · many outputs · &gt;1,500 credits</p>
+          <p class="ex-prompt">“Analyze 6 months of exported product usage data, classify prompts, and produce a leadership-ready report vs. the prior period.”</p>
+        </article>
+      </div>
+    </section>
+
+    <!-- ===================== FOOTER / DISCLAIMER ===================== -->
+    <footer class="disclaimer">
+      <p><strong>Disclaimer.</strong> Figures are derived from aggregated, anonymized data from customers in the Cowork Frontier program, for illustrative and informational purposes only. They may not reflect the experience of all customers and should not be relied upon as definitive, complete, or predictive of future outcomes. This tool is designed to help inform budgeting considerations for potential Cowork purchases; Microsoft does not guarantee accuracy and disclaims any warranties related to expected results.</p>
+      <p class="foot-line"><span id="gen-stamp"></span> · Based on CustomerCoworkEstimator. List pricing, USD.</p>
+    </footer>
+  </div>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js" defer></script>
+  <script src="app.js" defer></script>
+</body>
+</html>
