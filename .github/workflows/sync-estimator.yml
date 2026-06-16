@@ -1,0 +1,57 @@
+name: Sync estimator from source workbook
+
+on:
+  schedule:
+    # Weekly, Mondays at 13:00 UTC (~09:00 ET)
+    - cron: "0 13 * * 1"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: sync-estimator
+  cancel-in-progress: false
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install dependencies
+        run: pip install --quiet openpyxl requests
+
+      - name: Run sync
+        id: sync
+        run: python scripts/sync_estimator.py
+
+      - name: Commit and push if changed
+        if: steps.sync.outputs.changed == 'true'
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add estimator-data.json estimator-data.js
+          git commit -m "chore: sync estimator data from source workbook
+
+          ${{ steps.sync.outputs.summary }}
+
+          Source last modified within the last week: ${{ steps.sync.outputs.recent }}
+          Co-authored-by: Copilot <223556219+Copilot@users.noreply.github.com>"
+          git push
+
+      - name: Report result
+        run: |
+          echo "changed=${{ steps.sync.outputs.changed }}"
+          echo "recent=${{ steps.sync.outputs.recent }}"
+          echo "summary=${{ steps.sync.outputs.summary }}"
+          echo "### Estimator sync" >> "$GITHUB_STEP_SUMMARY"
+          echo "- changed: ${{ steps.sync.outputs.changed }}" >> "$GITHUB_STEP_SUMMARY"
+          echo "- recent (<=7 days): ${{ steps.sync.outputs.recent }}" >> "$GITHUB_STEP_SUMMARY"
+          echo "- ${{ steps.sync.outputs.summary }}" >> "$GITHUB_STEP_SUMMARY"

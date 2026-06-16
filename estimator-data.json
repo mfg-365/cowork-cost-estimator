@@ -1,0 +1,44 @@
+{
+  "source": "https://aka.ms/CustomerCoworkEstimator",
+  "lastModified": "2026-06-16T02:45:39+00:00",
+  "lastSynced": "2026-06-16T15:29:49.769779+00:00",
+  "roles": [
+    {
+      "id": "corp",
+      "name": "Corporate Knowledge Workers",
+      "users": 0,
+      "light": 22,
+      "medium": 11,
+      "heavy": 5
+    },
+    {
+      "id": "cust",
+      "name": "Customer-Facing Knowledge Workers",
+      "users": 0,
+      "light": 17,
+      "medium": 13,
+      "heavy": 5
+    },
+    {
+      "id": "tech",
+      "name": "Technical Workers",
+      "users": 0,
+      "light": 12,
+      "medium": 9,
+      "heavy": 14
+    },
+    {
+      "id": "mgmt",
+      "name": "Managers & Senior Leaders",
+      "users": 0,
+      "light": 13,
+      "medium": 6,
+      "heavy": 3
+    }
+  ],
+  "creditsPerPrompt": {
+    "light": 125,
+    "medium": 500,
+    "heavy": 2500
+  }
+}

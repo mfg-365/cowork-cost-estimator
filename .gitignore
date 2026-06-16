@@ -2,3 +2,5 @@ node_modules/
 *.log
 .DS_Store
 estimator-qa.png
+_source_latest.xlsx
+__pycache__/

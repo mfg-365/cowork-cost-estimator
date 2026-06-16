@@ -9,14 +9,26 @@
      avgPerUser$    = monthlyBudget / totalUsers
    ============================================================ */
 
-const ROLES = [
+const FALLBACK_ROLES = [
   { id: "corp",  name: "Corporate Knowledge Workers",        users: 0, light: 22, medium: 11, heavy: 5 },
   { id: "cust",  name: "Customer-Facing Knowledge Workers",  users: 0, light: 17, medium: 13, heavy: 5 },
   { id: "tech",  name: "Technical Workers",                  users: 0, light: 12, medium: 9,  heavy: 14 },
   { id: "mgmt",  name: "Managers & Senior Leaders",          users: 0, light: 13, medium: 6,  heavy: 3 },
 ];
 
-const DEFAULT_CPP = { light: 125, medium: 500, heavy: 2500 };
+const FALLBACK_CPP = { light: 125, medium: 500, heavy: 2500 };
+
+// Live source data is injected by estimator-data.js (auto-synced weekly from the
+// source workbook). Fall back to the embedded defaults if it isn't present.
+const SOURCE_DATA = (typeof window !== "undefined" && window.ESTIMATOR_DATA) ? window.ESTIMATOR_DATA : null;
+
+const ROLES = (SOURCE_DATA && Array.isArray(SOURCE_DATA.roles) && SOURCE_DATA.roles.length)
+  ? SOURCE_DATA.roles.map(r => ({ id: r.id, name: r.name, users: 0, light: r.light, medium: r.medium, heavy: r.heavy }))
+  : FALLBACK_ROLES;
+
+const DEFAULT_CPP = (SOURCE_DATA && SOURCE_DATA.creditsPerPrompt)
+  ? { ...FALLBACK_CPP, ...SOURCE_DATA.creditsPerPrompt }
+  : FALLBACK_CPP;
 
 // Deep-cloneable working state
 let state = ROLES.map(r => ({ ...r }));
@@ -242,7 +254,27 @@ function exportPDF() {
 }
 
 /* ---------- Init ---------- */
+function applyDefaultCPP() {
+  document.getElementById("cpp-light").value = DEFAULT_CPP.light;
+  document.getElementById("cpp-medium").value = DEFAULT_CPP.medium;
+  document.getElementById("cpp-heavy").value = DEFAULT_CPP.heavy;
+}
+
+function showSourceStamp() {
+  const el = document.getElementById("gen-stamp");
+  if (!el) return;
+  let txt = "Generated " + new Date().toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" });
+  if (SOURCE_DATA && SOURCE_DATA.lastModified) {
+    const d = new Date(SOURCE_DATA.lastModified);
+    if (!isNaN(d)) {
+      txt += " · Source last updated " + d.toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" });
+    }
+  }
+  el.textContent = txt;
+}
+
 function init() {
+  applyDefaultCPP();
   buildRows();
   recalc();
   document.getElementById("btn-print").addEventListener("click", () => window.print());
@@ -251,8 +283,7 @@ function init() {
   ["cpp-light", "cpp-medium", "cpp-heavy"].forEach(id =>
     document.getElementById(id).addEventListener("input", recalc)
   );
-  const stamp = document.getElementById("gen-stamp");
-  if (stamp) stamp.textContent = "Generated " + new Date().toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" });
+  showSourceStamp();
 }
 
 if (document.readyState === "loading") {
